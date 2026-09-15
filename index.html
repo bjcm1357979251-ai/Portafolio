@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portafolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;700;900&family=Newsreader:ital,wght@0,300;0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bgA: rgb(16,38,58);
+    --bgB: rgb(48,90,110);
+    --accent: rgb(90,190,220);
+    --accent2: rgb(140,200,225);
+    --ink: #f2ede6;
+    --ink-dim: #a9a9ad;
+    --ink-faint: #63636b;
+    --line: rgba(242,237,230,0.10);
+    --line-strong: rgba(242,237,230,0.22);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html, body{
+    height: 100%;
+    overflow: hidden;
+    background: var(--bgA);
+  }
+
+  body{
+    color: var(--ink);
+    font-family: 'Newsreader', serif;
+    font-weight: 400;
+  }
+
+  ::selection{ background: var(--accent); color: #0a0b10; }
+
+  h1, h2, h3, .display{
+    font-family: 'Unbounded', sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  a{ color: inherit; text-decoration: none; }
+
+  /* ---------- NAV ---------- */
+  .nav{
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px clamp(24px, 5vw, 64px);
+    mix-blend-mode: difference;
+    pointer-events: none;
+  }
+  .nav-name{
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .nav-index{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--ink);
+  }
+
+  /* ---------- RAIL (scroll horizontal) ---------- */
+  .rail-wrap{
+    height: 100%;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity; /* antes: mandatory (peleaba con el wheel scroll) */
+    scrollbar-width: none;
+    cursor: grab;
+  }
+  .rail-wrap::-webkit-scrollbar{ display: none; }
+  .rail-wrap.dragging{ cursor: grabbing; scroll-snap-type: none; }
+
+  .rail{
+    display: flex;
+    height: 100%;
+    width: max-content;
+  }
+
+  .panel{
+    flex: 0 0 100vw;
+    height: 100%;
+    scroll-snap-align: start;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 clamp(24px, 5vw, 64px);
+  }
+
+  /* ---------- HERO ---------- */
+  #hero{ overflow: hidden; }
+
+  #generative-bg{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .hero-content{
+    position: relative;
+    z-index: 2;
+    max-width: 640px;
+    opacity: 0;
+    transform: translateY(18px);
+    animation: heroIn 1.4s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+  }
+
+  @keyframes heroIn{ to{ opacity: 1; transform: translateY(0); } }
+
+  .hero-eyebrow{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .hero-title{
+    font-size: clamp(2.6rem, 7vw, 5.6rem);
+    line-height: 0.95;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .hero-meta{
+    margin-top: 28px;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .hero-meta div{
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    font-family: 'Unbounded', sans-serif;
+  }
+  .hero-meta strong{
+    display: block;
+    color: var(--ink-dim);
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    font-weight: 400;
+    margin-top: 4px;
+  }
+
+  .drift-cue{
+    position: absolute;
+    z-index: 2;
+    bottom: 64px;
+    left: clamp(24px, 5vw, 64px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+  .drift-cue .line{
+    width: 48px; height: 1px;
+    background: var(--ink-faint);
+    position: relative;
+    overflow: hidden;
+  }
+  .drift-cue .line::after{
+    content:'';
+    position: absolute;
+    top:0; left:-100%;
+    width: 100%; height: 100%;
+    background: var(--accent);
+    animation: driftLine 2.4s ease-in-out infinite;
+  }
+  @keyframes driftLine{
+    0%{ left:-100%; } 50%{ left:0; } 100%{ left:100%; }
+  }
+
+  /* ---------- STATEMENT ---------- */
+  .statement p{
+    font-size: clamp(1.3rem, 2.4vw, 2rem);
+    line-height: 1.55;
+    font-weight: 300;
+    color: var(--ink);
+    max-width: 720px;
+  }
+  .statement p em{
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  /* ---------- WORKS ---------- */
+  .work{
+    display: flex;
+    align-items: center;
+    gap: clamp(28px, 5vw, 80px);
+    max-width: 1400px;
+    width: 100%;
+  }
+
+  .work.reverse{ flex-direction: row-reverse; }
+
+  .work-media{
+    flex: 1.1;
+    height: min(64vh, 560px);
+    aspect-ratio: 4 / 5;
+    background: linear-gradient(160deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015));
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.5s ease;
+  }
+  .work-media:hover{ border-color: var(--accent); }
+
+  .work-media::before{
+    content:'';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 55%),
+      radial-gradient(circle at 75% 80%, color-mix(in srgb, var(--accent2) 14%, transparent), transparent 55%);
+    mix-blend-mode: screen;
+    opacity: 0.5;
+  }
+
+  .work-media img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .work-media:hover img{ transform: scale(1.04); }
+
+  .placeholder-label{
+    position: relative;
+    z-index: 1;
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--ink-faint);
+    text-align: center;
+    padding: 0 24px;
+  }
+
+  .work-text{ flex: 1; min-width: 240px; }
+
+  .work-index{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .work-title{
+    font-size: clamp(1.7rem, 3.2vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.05;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+
+  .work-medium{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+  }
+
+  .work-desc{
+    font-size: 0.98rem;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    font-weight: 300;
+    max-width: 44ch;
+  }
+
+  /* ---------- CONTACT ---------- */
+  .contact-wrap{
+    max-width: 620px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .contact-title{
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 20px;
+    line-height: 1;
+  }
+
+  .contact-desc{
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    font-weight: 300;
+    max-width: 46ch;
+    margin-bottom: 36px;
+  }
+
+  .contact-email{
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    font-weight: 400;
+    color: var(--accent);
+    position: relative;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-strong);
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+  .contact-email:hover{
+    color: var(--ink);
+    border-color: var(--accent);
+  }
+
+  .contact-socials{
+    margin-top: 28px;
+  }
+  .contact-socials-note{
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+  }
+
+  /* ---------- FOOTER ---------- */
+  .footer-title{
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-weight: 400;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .footer-panel{ flex-direction: column; gap: 24px; }
+  .footer-row{
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    display: flex;
+    gap: 32px;
+  }
+
+  /* ---------- PROGRESS ---------- */
+  .progress-wrap{
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    z-index: 60;
+  }
+  .progress-bar{
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: background 0.3s ease;
+  }
+
+  @media (max-width: 780px){
+    .work, .work.reverse{ flex-direction: column; height: auto; gap: 20px; }
+    .work-media{ height: 34vh; width: 100%; }
+    .panel{ overflow-y: auto; padding-top: 96px; padding-bottom: 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero-content{ animation: none; opacity: 1; transform: none; }
+    .drift-cue .line::after{ animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-name">Bryan Cedeño</span>
+  <span class="nav-index">Portafolio — Selección 2026</span>
+</nav>
+
+<div class="rail-wrap" id="railWrap">
+  <div class="rail" id="rail">
+
+    <section class="panel" id="hero">
+      <canvas id="generative-bg"></canvas>
+      <div class="hero-content">
+        <p class="hero-eyebrow">Un cruce entre moda, tecnología, sistemas generativos y modelado 3D.</p>
+        <h1 class="hero-title">Bryan Cedeño</h1>
+        <div class="hero-meta">
+          <div>Disciplina<strong>Diseño &amp; arte tecnológico</strong></div>
+          <div>Enfoque<strong>Generativo, moda + tech, 3D</strong></div>
+          <div>Selección<strong>Tres obras</strong></div>
+        </div>
+      </div>
+      <div class="drift-cue"><div class="line"></div>desliza</div>
+    </section>
+
+    <section class="panel statement">
+      <p>Tres piezas que atraviesan el mismo territorio desde ángulos distintos: <em>la prenda como sistema</em>, <em>el código como material</em> y <em>lo generativo como lenguaje visual</em>. Este portafolio reúne el trabajo que mejor representa esa búsqueda.</p>
+    </section>
+
+    <section class="panel">
+      <article class="work">
+        <div class="work-media"><img src="Agujero Negro.png" alt="Render de un agujero negro, obra de Bryan Cedeño" loading="lazy"></div>
+        <div class="work-text">
+          <span class="work-index">Pieza I</span>
+          <h2 class="work-title">Agujero Negro</h2>
+          <p class="work-medium">Render 3D — 2026</p>
+          <p class="work-desc">Representa la idea de vacío, misterio y transformación. El agujero negro funciona como un espacio que absorbe y distorsiona la materia, simbolizando aquello que desconocemos y que, al mismo tiempo, nos atrae hacia lo desconocido.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <article class="work reverse">
+        <div class="work-media"><img src="Mundo Realista.png" alt="Render de un planeta imaginario, obra de Bryan Cedeño" loading="lazy"></div>
+        <div class="work-text">
+          <span class="work-index">Pieza II</span>
+          <h2 class="work-title">Mundo Realista</h2>
+          <p class="work-medium">Render 3D — 2026</p>
+          <p class="work-desc">Representa un mundo imaginario como una exploración de la relación entre naturaleza, espacio y creación digital. El planeta funciona como un territorio construido desde la imaginación, donde lo desconocido se convierte en una posibilidad visual.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <article class="work">
+        <div class="work-media"><img src="null3.png" alt="Bioflujo, obra generativa interactiva de Bryan Cedeño" loading="lazy"></div>
+        <div class="work-text">
+          <span class="work-index">Pieza III</span>
+          <h2 class="work-title">Bioflujo</h2>
+          <p class="work-medium">Arte generativo interactivo — 2026</p>
+          <p class="work-desc">Obra interactiva que explora la relación entre el cuerpo humano y los sistemas digitales. Su comportamiento surge a partir de la presencia y los movimientos del espectador, convirtiendo su interacción en un flujo visual que hace posible la existencia y transformación de la obra.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" id="contact">
+      <div class="contact-wrap">
+        <span class="work-index">Contacto</span>
+        <h2 class="contact-title">Hablemos.</h2>
+        <p class="contact-desc">Abierto a colaboraciones, proyectos freelance y conversaciones sobre moda, tecnología y sistemas generativos.</p>
+        <a class="contact-email" href="mailto:Bjcedeno71@gmail.com">Bjcedeno71@gmail.com</a>
+        <div class="contact-socials">
+          <span class="contact-socials-note">Redes próximamente</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel footer-panel">
+      <span class="footer-title">Gracias por ver.</span>
+      <div class="footer-row"><span>Bryan Cedeño</span><span>Portafolio 2026</span></div>
+    </section>
+
+  </div>
+</div>
+
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<script>
+  /* ---------- Scroll horizontal robusto (mouse rueda + trackpad + drag) ---------- */
+  const railWrap = document.getElementById('railWrap');
+  const progressBar = document.getElementById('progressBar');
+
+  // WHEEL: usa el eje que tenga mayor magnitud (deltaY en mouse normal, deltaX en muchos trackpads)
+  railWrap.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    railWrap.scrollLeft += delta;
+  }, { passive: false });
+
+  // TECLADO
+  window.addEventListener('keydown', (e) => {
+    const step = window.innerWidth;
+    if (e.key === 'ArrowRight') railWrap.scrollBy({ left: step, behavior: 'smooth' });
+    if (e.key === 'ArrowLeft') railWrap.scrollBy({ left: -step, behavior: 'smooth' });
+  });
+
+  // DRAG con mouse / touch (útil si alguien prefiere arrastrar)
+  let isDown = false, startX = 0, startScroll = 0;
+
+  railWrap.addEventListener('pointerdown', (e) => {
+    isDown = true;
+    railWrap.classList.add('dragging');
+    startX = e.clientX;
+    startScroll = railWrap.scrollLeft;
+    railWrap.setPointerCapture(e.pointerId);
+  });
+
+  railWrap.addEventListener('pointermove', (e) => {
+    if (!isDown) return;
+    const dx = e.clientX - startX;
+    railWrap.scrollLeft = startScroll - dx;
+  });
+
+  function endDrag(){
+    isDown = false;
+    railWrap.classList.remove('dragging');
+  }
+  railWrap.addEventListener('pointerup', endDrag);
+  railWrap.addEventListener('pointercancel', endDrag);
+  railWrap.addEventListener('pointerleave', endDrag);
+
+  function updateProgress(){
+    const max = railWrap.scrollWidth - railWrap.clientWidth;
+    const pct = max > 0 ? (railWrap.scrollLeft / max) * 100 : 0;
+    progressBar.style.width = pct + '%';
+  }
+  railWrap.addEventListener('scroll', updateProgress);
+  updateProgress();
+
+  /* ---------- Paleta dinámica (frío -> cálido) según el mouse ---------- */
+  const cool = { bgA:[16,38,58], bgB:[48,90,110], accent:[90,190,220], accent2:[140,200,225] };
+  const warm = { bgA:[42,18,14],  bgB:[110,42,24], accent:[255,110,70], accent2:[235,150,90] };
+
+  let targetT = 0.35, currentT = 0.35;
+
+  window.addEventListener('pointermove', (e) => {
+    if (isDown) return; // no interferir mientras se arrastra el scroll
+    targetT = Math.min(1, Math.max(0, e.clientX / window.innerWidth));
+  });
+
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function mix(c1, c2, t){
+    return `rgb(${Math.round(lerp(c1[0], c2[0], t))}, ${Math.round(lerp(c1[1], c2[1], t))}, ${Math.round(lerp(c1[2], c2[2], t))})`;
+  }
+
+  function colorFrame(){
+    currentT += (targetT - currentT) * 0.045;
+    const root = document.documentElement.style;
+    root.setProperty('--bgA', mix(cool.bgA, warm.bgA, currentT));
+    root.setProperty('--bgB', mix(cool.bgB, warm.bgB, currentT));
+    root.setProperty('--accent', mix(cool.accent, warm.accent, currentT));
+    root.setProperty('--accent2', mix(cool.accent2, warm.accent2, currentT));
+    document.body.style.background = `linear-gradient(135deg, ${getComputedStyle(document.documentElement).getPropertyValue('--bgA')}, ${getComputedStyle(document.documentElement).getPropertyValue('--bgB')})`;
+    requestAnimationFrame(colorFrame);
+  }
+  colorFrame();
+
+  /* ---------- Fondo generativo del hero ---------- */
+  const canvas = document.getElementById('generative-bg');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles;
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resizeCanvas(){
+    w = canvas.width = canvas.offsetWidth * devicePixelRatio;
+    h = canvas.height = canvas.offsetHeight * devicePixelRatio;
+  }
+
+  function makeParticles(){
+    const count = Math.min(70, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 18000));
+    particles = Array.from({length: count}, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.25 * devicePixelRatio,
+      vy: (Math.random() - 0.5) * 0.25 * devicePixelRatio,
+      r: (Math.random() * 1.6 + 0.6) * devicePixelRatio
+    }));
+  }
+
+  function currentAccentRGB(){
+    const val = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const nums = val.match(/[\d.]+/g);
+    return nums ? nums.slice(0,3).join(',') : '90,190,220';
+  }
+
+  function step(){
+    ctx.clearRect(0, 0, w, h);
+    const hue = currentAccentRGB();
+    for(const p of particles){
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < 0 || p.x > w) p.vx *= -1;
+      if(p.y < 0 || p.y > h) p.vy *= -1;
+    }
+    for(let i = 0; i < particles.length; i++){
+      for(let j = i + 1; j < particles.length; j++){
+        const a = particles[i], b = particles[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const maxDist = 140 * devicePixelRatio;
+        if(dist < maxDist){
+          ctx.strokeStyle = `rgba(${hue}, ${0.10 * (1 - dist / maxDist)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+    for(const p of particles){
+      ctx.fillStyle = `rgba(${hue}, 0.6)`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(step);
+  }
+
+  function initCanvas(){
+    resizeCanvas();
+    makeParticles();
+    step();
+  }
+  window.addEventListener('resize', () => { resizeCanvas(); makeParticles(); });
+  initCanvas();
+</script>
+
+</body>
+</html>
